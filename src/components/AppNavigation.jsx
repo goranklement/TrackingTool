@@ -5,6 +5,8 @@ import { Route } from "react-router-dom";
 import History from "./History";
 import Trackers from "./Trackers";
 import Logout from "./Logout";
+import Login from "./Login";
+import Register from "./Register";
 
 const AppNavigation = () => {
   return (
@@ -15,7 +17,8 @@ const AppNavigation = () => {
           <Routes>
             <Route path="/Trackers" element={<Trackers />} />
             <Route path="/History" element={<History />} />
-            <Route path="/Logout" element={<Logout />} />
+            <Route path="/Login" element={<Login />} />
+            <Route path="/Register" element={<Register />} />
           </Routes>
         </BrowserRouter>
       </header>

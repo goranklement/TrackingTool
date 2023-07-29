@@ -25,7 +25,7 @@ const Navbar = () => {
         />
         <NavigationItem
           icon="power-off"
-          text="Logout"
+          text="Login"
           color="#181846"
           hasBorder={false}
         />

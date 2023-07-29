@@ -9,7 +9,9 @@ const NavigationItem = ({ icon, text, color, hasBorder }) => {
     if (hasBorder) {
       return {
         color: isActive ? "#F9F9FD" : "#C4C5D7",
-        borderBottom: isActive ? "5px solid #FF5722" : `5px solid ${color}`,
+        borderBottomWidth: "5px",
+        borderBottomStyle: "solid",
+        borderBottomColor: isActive ? "#FF5722" : `${color}`,
         borderWidth: "100%",
       };
     } else {
