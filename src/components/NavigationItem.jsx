@@ -4,7 +4,13 @@ import { NavLink } from "react-router-dom";
 
 import "primeicons/primeicons.css";
 
-const NavigationItem = ({ icon, text, color, hasBorder }) => {
+const NavigationItem = ({ icon, text, color, hasBorder, onClick }) => {
+  const logoff = () => {
+    if (onClick) {
+      onClick();
+    }
+  };
+
   const navLinkStyles = ({ isActive }) => {
     if (hasBorder) {
       return {
@@ -20,7 +26,12 @@ const NavigationItem = ({ icon, text, color, hasBorder }) => {
   };
 
   return (
-    <NavLink to={`/${text}`} style={navLinkStyles} className="nav-item">
+    <NavLink
+      to={text !== "Logoff" ? `/${text}` : `/Login`}
+      style={navLinkStyles}
+      className="nav-item"
+      onClick={logoff}
+    >
       <div className="group">
         <i className={`pi pi-${icon} `} style={{ fontSize: "18px" }}></i>
         <h2 className="navitem-heading">{text}</h2>

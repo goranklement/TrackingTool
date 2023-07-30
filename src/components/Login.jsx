@@ -1,30 +1,35 @@
 import React from "react";
 import { useState } from "react";
 import { useRef } from "react";
+import { auth } from "./FirebaseConfig";
+import { useContext } from "react";
+import { useNavigate } from "react-router-dom";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { UserContext } from "./UserContext";
 
 import { InputText } from "primereact/inputtext";
 import { Toast } from "primereact/toast";
 
-import { Button } from "primereact/button";
-
 const Login = () => {
+  const { setUser } = useContext(UserContext);
   const toast = useRef();
+  const navigate = useNavigate();
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleUsernameChange = (e) => {
-    setUsername(e.target.value);
+  const handleEmailChange = (e) => {
+    setEmail(e.target.value);
   };
 
   const togglePassword = () => {
     setIsPasswordVisible(!isPasswordVisible);
   };
-  const showError = () => {
+  const showError = (error) => {
     toast.current.show({
       severity: "error",
       summary: "Error",
-      detail: "Please enter needed information.",
+      detail: error,
       life: 2500,
     });
   };
@@ -35,23 +40,33 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (username === "" || password === "") {
-      showError();
-      console.log("HEEJ TU SAM");
+    if (email === "" || password === "") {
+      showError("Please enter needed information");
     } else {
-      console.log("Nice");
+      signInWithEmailAndPassword(auth, email, password)
+        .then((userCredential) => {
+          const user = userCredential.user;
+          setUser(user);
+          navigate("/Trackers");
+          console.log(user);
+        })
+        .catch((error) => {
+          // Handle login errors
+          const errorMessage = error.message;
+          showError(errorMessage);
+        });
     }
   };
 
   return (
     <div className="loginregister">
       <Toast ref={toast} />
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} className="loginForm">
         <h6>Login</h6>
         <InputText
-          value={username}
-          onChange={handleUsernameChange}
-          placeholder="Username"
+          value={email}
+          onChange={handleEmailChange}
+          placeholder="Email"
         />
         <br />
         <span className="p-input-icon-right">

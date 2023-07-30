@@ -2,8 +2,26 @@ import React from "react";
 import Logo from "../assets/logo.png";
 import "../main.css";
 import NavigationItem from "./NavigationItem";
+import { auth } from "./FirebaseConfig";
+import { useContext } from "react";
+import { UserContext } from "./UserContext";
+import firebase from "firebase/app";
 
 const Navbar = () => {
+  const { setUser } = useContext(UserContext);
+
+  const logoff = () => {
+    auth
+      .signOut()
+      .then(() => {
+        console.log("User logged out.");
+      })
+      .catch((error) => {
+        console.error("Logout error:", error);
+      });
+    setUser(null);
+  };
+
   return (
     <nav className="navbar">
       <div className="logo-container">
@@ -25,9 +43,10 @@ const Navbar = () => {
         />
         <NavigationItem
           icon="power-off"
-          text="Login"
+          text="Logoff"
           color="#181846"
           hasBorder={false}
+          onClick={logoff}
         />
       </div>
     </nav>
