@@ -5,6 +5,7 @@ import { NavLink } from "react-router-dom";
 import "primeicons/primeicons.css";
 
 const NavigationItem = ({ icon, text, color, hasBorder, onClick }) => {
+  const textLow = text.toLowerCase();
   const logoff = () => {
     if (onClick) {
       onClick();
@@ -27,7 +28,7 @@ const NavigationItem = ({ icon, text, color, hasBorder, onClick }) => {
 
   return (
     <NavLink
-      to={text !== "Logoff" ? `/${text}` : `/Login`}
+      to={textLow !== "logoff" ? `/${textLow}` : `/login`}
       style={navLinkStyles}
       className="nav-item"
       onClick={logoff}

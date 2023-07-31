@@ -2,16 +2,16 @@ import React from "react";
 import { useState } from "react";
 import { useRef } from "react";
 import { auth } from "./FirebaseConfig";
-import { useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { signInWithEmailAndPassword } from "firebase/auth";
-import { UserContext } from "./UserContext";
 
 import { InputText } from "primereact/inputtext";
 import { Toast } from "primereact/toast";
+import { AuthContext } from "./AuthProvider";
+import { useContext } from "react";
 
 const Login = () => {
-  const { setUser } = useContext(UserContext);
+  const { login } = useContext(AuthContext);
   const toast = useRef();
   const navigate = useNavigate();
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
@@ -46,12 +46,11 @@ const Login = () => {
       signInWithEmailAndPassword(auth, email, password)
         .then((userCredential) => {
           const user = userCredential.user;
-          setUser(user);
-          navigate("/Trackers");
+          login();
+          navigate("/trackers");
           console.log(user);
         })
         .catch((error) => {
-          // Handle login errors
           const errorMessage = error.message;
           showError(errorMessage);
         });

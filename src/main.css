@@ -183,3 +183,93 @@ h3 {
   height: 450px;
   margin-top: 50px;
 }
+.buttons {
+  color: #fff;
+  font-family: Nunito Sans;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 17px;
+  margin-left: auto;
+  margin-right: 140px;
+  position: absolute;
+  right: 0px;
+}
+.create {
+  margin-left: 45px;
+  margin-bottom: 150px;
+}
+.upperContainer {
+  display: flex;
+}
+svg text {
+  fill: #181846;
+  font-family: Nunito Sans;
+  font-size: 18px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 17px;
+}
+
+.time {
+  color: var(--lynch, #5f6b8a);
+  font-family: Nunito Sans;
+  font-size: 18px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 24px; /* 133.333% */
+}
+.description {
+  color: var(--lynch, #5f6b8a);
+  font-family: Nunito Sans;
+  font-size: 18px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 24px; /* 133.333% */
+}
+
+.icons i {
+  margin-left: 15px;
+}
+.time {
+  width: 220px;
+  height: 70px;
+  float: left;
+  border: 0.5px solid #ecedf5;
+  padding: 23px 0;
+  text-align: left;
+  padding-left: 30px;
+}
+.description {
+  float: left;
+  height: 70px;
+  width: 715px;
+  border: 0.5px solid #ecedf5;
+  padding: 23px 0;
+  text-align: left;
+  padding-left: 30px;
+}
+.icons {
+  float: right;
+  width: 234px;
+  height: 70px;
+  border: 0.5px solid #ecedf5;
+  align-items: center;
+  padding: 23px 0;
+  text-align: left;
+  padding-left: 30px;
+}
+
+.newInput {
+  margin-left: 70px;
+}
+.pi-icon-hover:hover {
+  transform: scale(1.2); /* Scale the icon by 1.2 on hover */
+}
+.editdesc {
+  width: 715px;
+  height: 70px;
+}
+.pi-check-circle:hover {
+  background-color: greenyellow;
+}

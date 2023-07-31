@@ -3,23 +3,21 @@ import Logo from "../assets/logo.png";
 import "../main.css";
 import NavigationItem from "./NavigationItem";
 import { auth } from "./FirebaseConfig";
+import { AuthContext } from "./AuthProvider";
 import { useContext } from "react";
-import { UserContext } from "./UserContext";
-import firebase from "firebase/app";
 
 const Navbar = () => {
-  const { setUser } = useContext(UserContext);
-
+  const { logout } = useContext(AuthContext);
   const logoff = () => {
     auth
       .signOut()
       .then(() => {
         console.log("User logged out.");
+        logout();
       })
       .catch((error) => {
         console.error("Logout error:", error);
       });
-    setUser(null);
   };
 
   return (
