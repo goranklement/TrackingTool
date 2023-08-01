@@ -27,12 +27,21 @@ class NewTask extends Component {
     this.setState({ isEditing: false });
   };
   handleStopTask = () => {
-    const { timer, description, date } = this.props;
-    this.props.onStop({ timer, description, date });
+    const { timer, description, date, index } = this.props;
+    this.props.onStop({ timer, description, date, index });
+  };
+
+  handlePauseContinue = () => {
+    const { isActive, index, setActiveTaskIndex } = this.props;
+    if (isActive) {
+      setActiveTaskIndex(null);
+    } else {
+      setActiveTaskIndex(index);
+    }
   };
 
   render() {
-    const { timer, description, onDelete } = this.props;
+    const { timer, description, onDelete, isActive } = this.props;
     const { isEditing, editedDescription } = this.state;
 
     return (
@@ -57,9 +66,10 @@ class NewTask extends Component {
         )}
         <div className="icons">
           <i
-            title="Pause/continue"
-            className="pi pi-pause pi-icon-hover"
+            title={isActive ? "Pause" : "Continue"}
+            className={`pi ${isActive ? "pi-pause" : "pi-play"} pi-icon-hover`}
             style={{ fontSize: "24px", color: "#FF5722" }}
+            onClick={this.handlePauseContinue}
           ></i>
           <i
             onClick={this.handleStopTask}

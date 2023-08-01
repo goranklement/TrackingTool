@@ -3,17 +3,17 @@ import { useRef } from "react";
 import { useEffect } from "react";
 import { Button } from "primereact/button";
 import NewTask from "./NewTask";
+import { flushSync } from "react-dom";
+import { makeAutoObservable } from "mobx";
+import { makePersistable } from "mobx-persist-store";
 
 import { Calendar } from "primereact/calendar";
 
 import { Toast } from "primereact/toast";
 
 import { InputText } from "primereact/inputtext";
-import { useContext } from "react";
-import { AuthContext } from "./AuthProvider";
 
 const Trackers = () => {
-  const { isAuthenticated } = useContext(AuthContext);
   const [taskList, setTaskList] = useState([]);
   const toast = useRef(null);
   const [date, setDate] = useState(null);
@@ -22,6 +22,7 @@ const Trackers = () => {
   const [description, setDescription] = useState();
   const [activeTaskIndex, setActiveTaskIndex] = useState(null);
   const [stoppedTasks, setStoppedTasks] = useState([]);
+
   const formatTime = (seconds) => {
     const hrs = Math.floor(seconds / 3600);
     const mins = Math.floor((seconds % 3600) / 60);
@@ -30,6 +31,14 @@ const Trackers = () => {
       .toString()
       .padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
+  useEffect(() => {
+    console.log(activeTaskIndex);
+    console.log(stoppedTasks);
+    if (activeTaskIndex === taskList.length) {
+      setActiveTaskIndex(taskList.length - 1);
+      console.log(activeTaskIndex);
+    }
+  }, [taskList]);
 
   useEffect(() => {
     if (activeTaskIndex !== null) {
@@ -61,35 +70,37 @@ const Trackers = () => {
       return updatedTaskList;
     });
   };
-  const handleStopTask = (taskData) => {
-    const updatedTaskList = taskList.filter(
-      (task) =>
-        task.timer !== taskData.timer &&
-        task.description !== taskData.description
-    );
+
+  const handleStopTask = (taskData, index) => {
+    const updatedTaskList = taskList.filter((task, i) => i !== index);
     setTaskList(updatedTaskList);
     setStoppedTasks((prevStoppedTasks) => [
       ...prevStoppedTasks,
       { ...taskData },
     ]);
+    if (index === activeTaskIndex) setActiveTaskIndex(null);
+    console.log(activeTaskIndex);
   };
+
   const stopAllTimers = () => {
-    if (activeTaskIndex !== null) {
-      const activeTaskData = taskList[activeTaskIndex];
-
-      setActiveTaskIndex(null);
-
-      setStoppedTasks((prevStoppedTasks) => [
-        ...prevStoppedTasks,
-        ...taskList.map((task) => ({
-          ...task,
-        })),
-      ]);
-      setTaskList([]);
-    }
+    setStoppedTasks((prevStoppedTasks) => [
+      ...prevStoppedTasks,
+      ...taskList.map((task) => ({
+        ...task,
+      })),
+    ]);
+    setTaskList([]);
+    setActiveTaskIndex(null);
   };
   const handleDeleteTask = (index) => {
     setTaskList((prevTasks) => prevTasks.filter((_, i) => i !== index));
+
+    if (index === activeTaskIndex) {
+      setActiveTaskIndex(null);
+    } else if (activeTaskIndex === taskList.length - 1) {
+      setActiveTaskIndex(taskList.length - 2);
+    }
+    console.log(taskList);
   };
 
   const handleEditDescription = (index) => {
@@ -100,18 +111,19 @@ const Trackers = () => {
     if (description === "" || date === null) {
       showError("You have to pick date and enter description");
     } else {
-      setTaskList([
-        ...taskList,
-        { timer: 0, description: description, date: date },
-      ]);
-      setActiveTaskIndex(taskList.length);
+      flushSync(() => {
+        setTaskList([
+          ...taskList,
+          { timer: 0, description: description, date: date },
+        ]);
+        setActiveTaskIndex(taskList.length);
+      });
     }
   };
   const handleDescriptionChange = (e) => {
     setDescription(e.target.value);
   };
-  console.log(stoppedTasks);
-  console.log(taskList);
+
   const showError = (error) => {
     toast.current.show({
       severity: "error",
@@ -215,6 +227,7 @@ const Trackers = () => {
       {taskList.map((task, index) => {
         return (
           <NewTask
+            key={index}
             date={task.date}
             isEditing={isEditing}
             timer={formatTime(task.timer)}
@@ -226,7 +239,8 @@ const Trackers = () => {
               handleUpdateDescription(index, newDescription)
             }
             index={index}
-            onStop={handleStopTask}
+            onStop={(taskData) => handleStopTask(taskData, index)}
+            setActiveTaskIndex={setActiveTaskIndex}
           />
         );
       })}
