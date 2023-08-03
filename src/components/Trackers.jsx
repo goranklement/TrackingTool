@@ -3,15 +3,20 @@ import { useRef } from "react";
 import { useEffect } from "react";
 import { Button } from "primereact/button";
 import NewTask from "./NewTask";
-import { flushSync } from "react-dom";
-import { makeAutoObservable } from "mobx";
-import { makePersistable } from "mobx-persist-store";
+import { db } from "./FirebaseConfig";
+import { getFirestore } from "firebase/firestore";
+import { arrayUnion } from "firebase/firestore";
+import { onAuthStateChanged } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
+import { collection, addDoc } from "firebase/firestore";
+import { setDoc } from "firebase/firestore";
 
 import { Calendar } from "primereact/calendar";
 
 import { Toast } from "primereact/toast";
 
 import { InputText } from "primereact/inputtext";
+import { auth } from "./FirebaseConfig";
 
 const Trackers = () => {
   const [taskList, setTaskList] = useState([]);
@@ -19,9 +24,26 @@ const Trackers = () => {
   const [date, setDate] = useState(null);
   const [isEditing, setEditingIndex] = useState(false);
   const [isDescVisible, setIsDescVisible] = useState(false);
-  const [description, setDescription] = useState();
+  const [description, setDescription] = useState("");
   const [activeTaskIndex, setActiveTaskIndex] = useState(null);
   const [stoppedTasks, setStoppedTasks] = useState([]);
+
+  const user = auth.currentUser;
+
+  const activeTasksRef = doc(db, "tasks", user.uid);
+  const savedTasksRef = doc(db, "tasks", user.uid + "S");
+
+  const addActiveTaskToFirestore = async () => {
+    setDoc(activeTasksRef, {
+      tasks: taskList,
+    });
+  };
+
+  const addFinishedTaskToFirestore = async () => {
+    setDoc(savedTasksRef, {
+      tasks: stoppedTasks,
+    });
+  };
 
   const formatTime = (seconds) => {
     const hrs = Math.floor(seconds / 3600);
@@ -32,11 +54,16 @@ const Trackers = () => {
       .padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
   useEffect(() => {
-    console.log(activeTaskIndex);
-    console.log(stoppedTasks);
+    localStorage.setItem("myData", JSON.stringify(taskList));
+    const savedData = localStorage.getItem("myData");
+    if (user) {
+      addActiveTaskToFirestore();
+      addFinishedTaskToFirestore();
+    } else {
+    }
+
     if (activeTaskIndex === taskList.length) {
       setActiveTaskIndex(taskList.length - 1);
-      console.log(activeTaskIndex);
     }
   }, [taskList]);
 
@@ -79,7 +106,6 @@ const Trackers = () => {
       { ...taskData },
     ]);
     if (index === activeTaskIndex) setActiveTaskIndex(null);
-    console.log(activeTaskIndex);
   };
 
   const stopAllTimers = () => {
@@ -100,7 +126,6 @@ const Trackers = () => {
     } else if (activeTaskIndex === taskList.length - 1) {
       setActiveTaskIndex(taskList.length - 2);
     }
-    console.log(taskList);
   };
 
   const handleEditDescription = (index) => {
@@ -111,13 +136,22 @@ const Trackers = () => {
     if (description === "" || date === null) {
       showError("You have to pick date and enter description");
     } else {
-      flushSync(() => {
-        setTaskList([
-          ...taskList,
-          { timer: 0, description: description, date: date },
-        ]);
-        setActiveTaskIndex(taskList.length);
-      });
+      console.log(date);
+      setTaskList([
+        ...taskList,
+        {
+          timer: 0,
+          description: description,
+          date:
+            date.getDate() +
+            "." +
+            (date.getUTCMonth() + 1) +
+            "." +
+            date.getFullYear() +
+            ".",
+        },
+      ]);
+      setActiveTaskIndex(taskList.length);
     }
   };
   const handleDescriptionChange = (e) => {
@@ -225,6 +259,7 @@ const Trackers = () => {
         </text>
       </svg>
       {taskList.map((task, index) => {
+        console.log(task.date);
         return (
           <NewTask
             key={index}

@@ -273,3 +273,131 @@ svg text {
 .pi-check-circle:hover {
   background-color: greenyellow;
 }
+.history {
+}
+.history-heading {
+  font-family: Nunito Sans;
+  font-size: 24px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 17px;
+  color: #0c0d25;
+  text-align: left;
+  margin-bottom: 50px;
+}
+.datesDesc {
+  display: flex;
+  height: 110px;
+  background-color: #f9f9fd;
+}
+.finishedList {
+  margin-top: 45px;
+}
+.datesDesc h5 {
+  text-align: left;
+  color: var(--lynch, #5f6b8a);
+  font-family: Roboto;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 17px; /* 121.429% */
+  color: #5f6b8a;
+  margin-left: 40px;
+  margin-bottom: 5px;
+}
+.datesDesc .calendar {
+  margin-left: 40px;
+  width: 330px;
+  height: 45px;
+}
+.firstCalendar {
+  margin-left: 10px;
+}
+.search {
+  width: 330px;
+  height: 45px;
+}
+.third InputText {
+  margin-left: 40px;
+}
+.finishedList {
+  display: flex;
+  height: 70px;
+  width: 1165px;
+  background-color: #f9f9fd;
+}
+.finishedList h4 {
+  font-family: Nunito Sans;
+  font-size: 18px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 17px; /* 94.444% */
+  color: #0c0d25;
+}
+
+.finishedList .first,
+.savedTask .first {
+  text-align: left;
+  margin-left: 30px;
+  width: 220px;
+}
+.finishedList .second,
+.savedTask .second {
+  text-align: left;
+  margin-left: 30px;
+  width: 480px;
+}
+
+.finishedList .third,
+.savedTask .third {
+  text-align: left;
+  width: 230px;
+  margin-left: 30px;
+}
+
+.finishedList .forth,
+.savedTask .forth {
+  text-align: left;
+  margin-left: 30px;
+  width: 235px;
+}
+.savedTask {
+  display: flex;
+}
+.savedTask h3 {
+  color: var(--lynch, #5f6b8a);
+  font-family: Nunito Sans;
+  font-size: 18px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 24px; /* 133.333% */
+  color: #5f6b8a;
+}
+
+.savedTask .first,
+.savedTask .second,
+.savedTask .third,
+.savedTask .forth {
+  margin-left: 0px;
+  padding-left: 30px;
+  border: 0.5px solid #ecedf5;
+}
+.savedTask i {
+  color: #5f6b8a;
+}
+.pi-pencil {
+  margin-right: 15px;
+  margin-top: 20px;
+}
+
+.savedTask .pi:hover {
+  transform: scale(1.2);
+}
+.savedTask .editdesc {
+  width: 480px;
+}
+
+.history .pi-search,
+.history .pi-times:hover {
+  transform: scale(1.2);
+}

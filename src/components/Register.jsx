@@ -54,7 +54,7 @@ const Register = () => {
       await createUserWithEmailAndPassword(auth, email, password)
         .then((userCredential) => {
           const user = userCredential.user;
-          navigate("/Login");
+          navigate("/trackers");
           console.log(user);
         })
         .catch((error) => {
@@ -112,7 +112,7 @@ const Register = () => {
 
         <div className="registerLabels">
           <p>Already have an account?</p>
-          <a href="/Login">Login here</a>
+          <a href="/login">Login here</a>
         </div>
       </div>
     </div>

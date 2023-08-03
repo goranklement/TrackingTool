@@ -1,4 +1,6 @@
 import React, { createContext, useState, useEffect } from "react";
+import { onAuthStateChanged } from "firebase/auth";
+import { auth } from "./FirebaseConfig";
 
 const AuthContext = createContext();
 
@@ -6,22 +8,19 @@ const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    const storedAuthData = localStorage.getItem("authData");
-    if (storedAuthData) {
-      setIsAuthenticated(true);
-    }
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setIsAuthenticated(!!user);
+    });
+
+    return () => unsubscribe();
   }, []);
 
   const login = () => {
     setIsAuthenticated(true);
-
-    localStorage.setItem("authData", "some-authentication-data");
   };
 
   const logout = () => {
     setIsAuthenticated(false);
-
-    localStorage.removeItem("authData");
   };
 
   return (

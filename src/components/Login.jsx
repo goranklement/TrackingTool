@@ -91,7 +91,7 @@ const Login = () => {
 
         <div className="registerLabels">
           <p>Need an account?</p>
-          <a href="/Register">Register here</a>
+          <a href="/register">Register here</a>
         </div>
       </div>
     </div>
