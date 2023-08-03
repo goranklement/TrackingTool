@@ -28,7 +28,11 @@ class NewTask extends Component {
   };
   handleStopTask = () => {
     const { timer, description, date, index } = this.props;
-    this.props.onStop({ timer, description, date, index });
+    this.props.onStop({ timer, description, date });
+  };
+  handleDeleteTask = () => {
+    const { index } = this.props;
+    this.props.onDelete({ index });
   };
 
   handlePauseContinue = () => {
@@ -41,11 +45,11 @@ class NewTask extends Component {
   };
 
   render() {
-    const { timer, description, onDelete, isActive } = this.props;
+    const { timer, description, isActive } = this.props;
     const { isEditing, editedDescription } = this.state;
 
     return (
-      <div>
+      <div className="newTask">
         <div className="time">{timer}</div>
         {isEditing ? (
           <span className="p-input-icon-right">
@@ -88,7 +92,7 @@ class NewTask extends Component {
           ></i>
           <i
             title="Delete"
-            onClick={onDelete}
+            onClick={this.handleDeleteTask}
             className="pi pi-trash pi-icon-hover"
             style={{ fontSize: "24px", color: "#5F6B8A" }}
           ></i>

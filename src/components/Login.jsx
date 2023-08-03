@@ -48,7 +48,6 @@ const Login = () => {
           const user = userCredential.user;
           login();
           navigate("/trackers");
-          console.log(user);
         })
         .catch((error) => {
           const errorMessage = error.message;

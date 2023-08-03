@@ -1,7 +1,6 @@
 import React from "react";
 import Logo from "../assets/logo.png";
 import "../main.css";
-import NavigationItem from "./NavigationItem";
 
 const Navbar = () => {
   return (

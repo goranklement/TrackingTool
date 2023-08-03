@@ -4,9 +4,12 @@ import { useNavigate } from "react-router-dom";
 import { useRef } from "react";
 import { auth } from "./FirebaseConfig";
 import { createUserWithEmailAndPassword } from "firebase/auth";
+import { db } from "./FirebaseConfig";
+import { doc } from "firebase/firestore";
 
 import { InputText } from "primereact/inputtext";
 import { Toast } from "primereact/toast";
+import { setDoc } from "firebase/firestore";
 
 const Register = () => {
   const toast = useRef();
@@ -52,10 +55,19 @@ const Register = () => {
       showError("Passwords not matching!");
     } else {
       await createUserWithEmailAndPassword(auth, email, password)
-        .then((userCredential) => {
+        .then(async (userCredential) => {
           const user = userCredential.user;
+          const activeTasksRef = doc(db, "tasks", user.uid);
+          const savedTasksRef = doc(db, "tasks", user.uid + "S");
+
+          await setDoc(activeTasksRef, {
+            tasks: [],
+          });
+          await setDoc(savedTasksRef, {
+            tasks: [],
+          });
+
           navigate("/trackers");
-          console.log(user);
         })
         .catch((error) => {
           const errorMessage = error.message;

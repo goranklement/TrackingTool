@@ -4,12 +4,12 @@ import { useEffect } from "react";
 import { Button } from "primereact/button";
 import NewTask from "./NewTask";
 import { db } from "./FirebaseConfig";
-import { getFirestore } from "firebase/firestore";
-import { arrayUnion } from "firebase/firestore";
-import { onAuthStateChanged } from "firebase/auth";
+
 import { doc, getDoc } from "firebase/firestore";
-import { collection, addDoc } from "firebase/firestore";
+import { arrayUnion } from "firebase/firestore";
+import { updateDoc } from "firebase/firestore";
 import { setDoc } from "firebase/firestore";
+import { deleteField } from "firebase/firestore";
 
 import { Calendar } from "primereact/calendar";
 
@@ -25,6 +25,7 @@ const Trackers = () => {
   const [isEditing, setEditingIndex] = useState(false);
   const [isDescVisible, setIsDescVisible] = useState(false);
   const [description, setDescription] = useState("");
+
   const [activeTaskIndex, setActiveTaskIndex] = useState(null);
   const [stoppedTasks, setStoppedTasks] = useState([]);
 
@@ -32,16 +33,14 @@ const Trackers = () => {
 
   const activeTasksRef = doc(db, "tasks", user.uid);
   const savedTasksRef = doc(db, "tasks", user.uid + "S");
+  const activeIndexRef = doc(db, "activeIndex", user.uid);
 
-  const addActiveTaskToFirestore = async () => {
-    setDoc(activeTasksRef, {
-      tasks: taskList,
-    });
-  };
-
-  const addFinishedTaskToFirestore = async () => {
-    setDoc(savedTasksRef, {
-      tasks: stoppedTasks,
+  const showSuccess = (message) => {
+    toast.current.show({
+      severity: "success",
+      summary: "Success",
+      detail: message,
+      life: 3000,
     });
   };
 
@@ -53,27 +52,40 @@ const Trackers = () => {
       .toString()
       .padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
-  useEffect(() => {
-    localStorage.setItem("myData", JSON.stringify(taskList));
-    const savedData = localStorage.getItem("myData");
-    if (user) {
-      addActiveTaskToFirestore();
-      addFinishedTaskToFirestore();
-    } else {
+
+  const getExistingTasks = async () => {
+    const docSnap = await getDoc(activeTasksRef);
+    if (docSnap.exists != true) {
+      await setDoc(activeIndexRef, {
+        tasks: [],
+      });
     }
 
-    if (activeTaskIndex === taskList.length) {
+    if (docSnap.exists()) {
+      setTaskList(docSnap.data().tasks);
       setActiveTaskIndex(taskList.length - 1);
+    } else {
+      showError("Error during reading data from database!");
     }
-  }, [taskList]);
+  };
 
   useEffect(() => {
-    if (activeTaskIndex !== null) {
-      const timerInterval = setInterval(() => {
+    getExistingTasks();
+  }, []);
+
+  useEffect(() => {
+    if (activeTaskIndex !== null && taskList !== undefined) {
+      const timerInterval = setInterval(async () => {
         setTaskList((prevTasks) =>
           prevTasks.map((task, index) => {
             if (index === activeTaskIndex) {
-              return { ...task, timer: task.timer + 1 };
+              const updatedTask = { ...task, timer: task.timer + 1 };
+              updateDoc(activeTasksRef, {
+                tasks: prevTasks.map((prevTask, i) =>
+                  i === index ? updatedTask : prevTask
+                ),
+              });
+              return updatedTask;
             }
             return task;
           })
@@ -90,41 +102,99 @@ const Trackers = () => {
     setIsDescVisible(!isDescVisible);
   };
 
-  const handleUpdateDescription = (index, newDescription) => {
-    setTaskList((prevTaskList) => {
-      const updatedTaskList = [...prevTaskList];
-      updatedTaskList[index].description = newDescription;
-      return updatedTaskList;
+  const addNewToDatabase = async () => {
+    const task = {
+      timer: 0,
+      date:
+        date.getDate() +
+        "." +
+        (date.getUTCMonth() + 1) +
+        "." +
+        date.getFullYear() +
+        ".",
+      description: description,
+    };
+
+    const activeTasksRef = doc(db, "tasks", user.uid);
+    const activeIndexRef = doc(db, "activeIndex", user.uid);
+
+    await updateDoc(activeTasksRef, {
+      tasks: arrayUnion(task),
     });
+
+    const docSnap = await getDoc(activeTasksRef);
+
+    setTaskList(docSnap.data().tasks);
+    await setDoc(activeIndexRef, {
+      index: docSnap.data().tasks.length,
+    });
+    const indexSnap = await getDoc(activeIndexRef);
+    setActiveTaskIndex(indexSnap.data().index - 1);
   };
 
-  const handleStopTask = (taskData, index) => {
+  const handleUpdateDescription = async (index, newDescription) => {
+    try {
+      const taskRef = doc(db, "tasks", user.uid);
+      const docSnap = await getDoc(taskRef);
+      const data = docSnap.data();
+
+      const updatedTasks = data.tasks.map((task, i) => {
+        if (i === index) {
+          return { ...task, description: newDescription };
+        }
+        return task;
+      });
+
+      await updateDoc(taskRef, { tasks: updatedTasks });
+
+      setTaskList(updatedTasks);
+      showSuccess("Task description updated successfully!");
+    } catch (error) {
+      showError("Error during updating task description.");
+    }
+  };
+  const handleStopTask = async (taskData, index) => {
     const updatedTaskList = taskList.filter((task, i) => i !== index);
+
+    const activeTasksRef = doc(db, "tasks", user.uid);
+
+    await updateDoc(activeTasksRef, {
+      tasks: updatedTaskList,
+    });
     setTaskList(updatedTaskList);
-    setStoppedTasks((prevStoppedTasks) => [
-      ...prevStoppedTasks,
-      { ...taskData },
-    ]);
+    await updateDoc(savedTasksRef, {
+      tasks: arrayUnion(taskData),
+    });
     if (index === activeTaskIndex) setActiveTaskIndex(null);
   };
 
-  const stopAllTimers = () => {
-    setStoppedTasks((prevStoppedTasks) => [
-      ...prevStoppedTasks,
-      ...taskList.map((task) => ({
-        ...task,
-      })),
-    ]);
-    setTaskList([]);
-    setActiveTaskIndex(null);
-  };
-  const handleDeleteTask = (index) => {
-    setTaskList((prevTasks) => prevTasks.filter((_, i) => i !== index));
+  const stopAllTimers = async () => {
+    await updateDoc(savedTasksRef, {
+      tasks: arrayUnion(...taskList),
+    });
 
-    if (index === activeTaskIndex) {
-      setActiveTaskIndex(null);
-    } else if (activeTaskIndex === taskList.length - 1) {
-      setActiveTaskIndex(taskList.length - 2);
+    await updateDoc(activeTasksRef, {
+      tasks: deleteField(),
+    });
+    window.location.reload(false);
+  };
+
+  const handleDeleteTask = async (index) => {
+    try {
+      const taskRef = doc(db, "tasks", user.uid);
+
+      const docSnap = await getDoc(taskRef);
+      const data = docSnap.data();
+
+      const updatedTasks = data.tasks.filter((task, i) => i !== index);
+
+      await updateDoc(taskRef, { tasks: updatedTasks });
+
+      setTaskList(updatedTasks);
+      showSuccess("Task deleted successfully!");
+      setDescription("");
+    } catch (error) {
+      showError("Error during deleting task happened.");
     }
   };
 
@@ -136,22 +206,7 @@ const Trackers = () => {
     if (description === "" || date === null) {
       showError("You have to pick date and enter description");
     } else {
-      console.log(date);
-      setTaskList([
-        ...taskList,
-        {
-          timer: 0,
-          description: description,
-          date:
-            date.getDate() +
-            "." +
-            (date.getUTCMonth() + 1) +
-            "." +
-            date.getFullYear() +
-            ".",
-        },
-      ]);
-      setActiveTaskIndex(taskList.length);
+      addNewToDatabase();
     }
   };
   const handleDescriptionChange = (e) => {
@@ -166,7 +221,6 @@ const Trackers = () => {
       life: 3000,
     });
   };
-
   return (
     <div className="trackersContainer">
       <Toast ref={toast} />
@@ -234,7 +288,6 @@ const Trackers = () => {
           </div>
         )}
       </div>
-
       <svg
         width="1170"
         height="70"
@@ -258,27 +311,31 @@ const Trackers = () => {
           Actions
         </text>
       </svg>
-      {taskList.map((task, index) => {
-        console.log(task.date);
-        return (
-          <NewTask
-            key={index}
-            date={task.date}
-            isEditing={isEditing}
-            timer={formatTime(task.timer)}
-            description={task.description}
-            isActive={index === activeTaskIndex}
-            onDelete={() => handleDeleteTask(index)}
-            onEditDescription={() => handleEditDescription(index)}
-            onUpdateDescription={(newDescription) =>
-              handleUpdateDescription(index, newDescription)
-            }
-            index={index}
-            onStop={(taskData) => handleStopTask(taskData, index)}
-            setActiveTaskIndex={setActiveTaskIndex}
-          />
-        );
-      })}
+
+      {taskList !== undefined ? (
+        taskList.map((task, index) => {
+          return (
+            <NewTask
+              key={index}
+              date={task.date}
+              isEditing={isEditing}
+              timer={formatTime(task.timer)}
+              description={task.description}
+              isActive={index === activeTaskIndex}
+              onDelete={() => handleDeleteTask(index)}
+              onEditDescription={() => handleEditDescription(index)}
+              onUpdateDescription={(newDescription) =>
+                handleUpdateDescription(index, newDescription)
+              }
+              index={index}
+              onStop={(taskData) => handleStopTask(taskData, index)}
+              setActiveTaskIndex={setActiveTaskIndex}
+            />
+          );
+        })
+      ) : (
+        <h1>Prazno</h1>
+      )}
     </div>
   );
 };

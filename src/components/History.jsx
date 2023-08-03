@@ -1,12 +1,10 @@
 import "../main.css";
 
 import { Calendar } from "primereact/calendar";
-
 import { InputText } from "primereact/inputtext";
 import SavedTask from "./SavedTask";
 import { useEffect, useState } from "react";
 import { updateDoc } from "firebase/firestore";
-import { arrayRemove } from "firebase/firestore";
 import { auth } from "./FirebaseConfig";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "./FirebaseConfig";
@@ -28,10 +26,9 @@ const History = () => {
     const docSnap = await getDoc(savedTasksRef);
 
     if (docSnap.exists()) {
-      console.log("Document data:", docSnap.data());
       setSavedTasks(docSnap.data().tasks);
     } else {
-      console.log("No such document!");
+      showError("Error happened");
     }
   };
   useEffect(() => {
@@ -142,7 +139,6 @@ const History = () => {
   };
 
   const editDescription = async (newDescription, timer, date, description) => {
-    console.log(newDescription, timer, date, description);
     try {
       const user = auth.currentUser;
       const taskRef = doc(db, "tasks", user.uid + "S");
@@ -168,8 +164,6 @@ const History = () => {
         }
 
         showSuccess("Description edited successfully!");
-      } else {
-        console.log("Task not found with the specified criteria.");
       }
     } catch (error) {
       showError("Error happened during decription editing.");
@@ -177,7 +171,6 @@ const History = () => {
   };
 
   const deleteTaskFromFirestore = async (description, timer, date) => {
-    console.log(description, timer, date);
     try {
       const user = auth.currentUser;
       const taskRef = doc(db, "tasks", user.uid + "S");
@@ -266,23 +259,27 @@ const History = () => {
           <h4>Action</h4>
         </div>
       </div>
-      {savedTasks.map((task, index) => {
-        return (
-          <SavedTask
-            key={index}
-            index={index}
-            timer={task.timer}
-            description={task.description}
-            date={task.date.toString()}
-            onDelete={(description, timer, date) =>
-              deleteTaskFromFirestore(description, timer, date)
-            }
-            onEditDescription={(newDescription, timer, date, description) =>
-              editDescription(newDescription, timer, date, description)
-            }
-          />
-        );
-      })}
+      {savedTasks != undefined ? (
+        savedTasks.map((task, index) => {
+          return (
+            <SavedTask
+              key={index}
+              index={index}
+              timer={task.timer}
+              description={task.description}
+              date={task.date.toString()}
+              onDelete={(description, timer, date) =>
+                deleteTaskFromFirestore(description, timer, date)
+              }
+              onEditDescription={(newDescription, timer, date, description) =>
+                editDescription(newDescription, timer, date, description)
+              }
+            />
+          );
+        })
+      ) : (
+        <h1></h1>
+      )}
     </div>
   );
 };
